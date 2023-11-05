@@ -20,9 +20,9 @@ export const useUniqueObjectValues = <T extends object, K extends keyof T>(
         const fieldToUniqueList = {} as Record<K, NonNullable<T[K]>[]>;
 
         for (const field of fields) {
-            fieldToUniqueList[field] = Array.from(fieldToSet.get(field)!)
-                .filter(Boolean)
-                .toSorted() as NonNullable<T[K]>[];
+            const values = Array.from(fieldToSet.get(field)!).filter(Boolean);
+            values.sort();
+            fieldToUniqueList[field] = values as NonNullable<T[K]>[];
         }
 
         return fieldToUniqueList;

@@ -49,21 +49,20 @@ const SCHEDULE_ITEM_TYPE_TO_CLASS = {
 export default function SchedulePage({
     schedules,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
-    const sortedExtendedItems: ExtendedScheduleItem[] = useMemo(
-        () =>
-            (schedules ?? [])
-                .map((schedule) => schedule.items)
-                .flat()
-                .map((item) => ({
-                    ...item,
-                    uuid:
-                        crypto?.randomUUID?.() ?? Math.floor(Math.random() * 1_000_000).toString(),
-                    startDate: getDateWithoutTimezone(`${item.date} ${item.startTime}`),
-                    endDate: getDateWithoutTimezone(`${item.date} ${item.endTime}`),
-                }))
-                .toSorted((a, b) => (a.startDate.getTime() > b.startDate.getTime() ? 1 : -1)) ?? [],
-        [schedules],
-    );
+    const sortedExtendedItems: ExtendedScheduleItem[] = useMemo(() => {
+        const items = (schedules ?? [])
+            .map((schedule) => schedule.items)
+            .flat()
+            .map((item) => ({
+                ...item,
+                uuid: crypto?.randomUUID?.() ?? Math.floor(Math.random() * 1_000_000).toString(),
+                startDate: getDateWithoutTimezone(`${item.date} ${item.startTime}`),
+                endDate: getDateWithoutTimezone(`${item.date} ${item.endTime}`),
+            }));
+
+        items.sort((a, b) => (a.startDate.getTime() > b.startDate.getTime() ? 1 : -1));
+        return items;
+    }, [schedules]);
 
     const classesGroupedByDate = useMemo(() => {
         const groups: ExtendedScheduleItem[][] = [];
