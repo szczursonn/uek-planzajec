@@ -20,6 +20,8 @@ interface PickerPageProps {
     groups: ScheduleGroup[];
 }
 
+export const runtime = 'experimental-edge';
+
 const PickerPage = ({ groups }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
     const router = useRouter();
     const [searchValue, setSearchValue] = useURLState('name');

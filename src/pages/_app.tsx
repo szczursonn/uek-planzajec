@@ -23,11 +23,11 @@ Router.events.on('routeChangeComplete', () => {
 const MyApp: AppType = ({ Component, pageProps }) => {
     return (
         <div
-            className={`${inter.className} min-h-screen flex flex-col items-center justify-between`}
+            className={`${inter.className} min-h-screen flex flex-col items-center justify-between transition-all dark:transition-all`}
         >
             <DocumentTitle />
             <Head>
-                <meta name='description' content='Plan Zajęć UEK'></meta>
+                <meta name='description' content='Plan Zajęć UEK' />
             </Head>
             <header className='z-50 relative mb-2 flex place-items-center'>
                 <Link href='/'>

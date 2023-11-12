@@ -1,7 +1,7 @@
 import Head from 'next/head';
 
 const DocumentTitle = ({ title }: { title?: string }) => {
-    const documentTitle = `Plan zajęć UEK${title ? ` - ${title}` : ''} `;
+    const documentTitle = `${title ? `${title} | ` : ''}Plan zajęć UEK`;
     return (
         <Head>
             <title>{documentTitle}</title>

@@ -19,6 +19,8 @@ interface PickGroupPageProps {
     schedules: ScheduleHeader[];
 }
 
+export const runtime = 'experimental-edge';
+
 const SCHEDULE_HEADER_UNIQUE_FIELDS = ['mode', 'year', 'language', 'languageLevel'] as const;
 
 const PickGroupPage = ({ schedules }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
