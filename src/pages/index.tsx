@@ -67,6 +67,7 @@ export default function SchedulePage({
                         <Link
                             href={schedule.classicUrl}
                             className='underline dark:hover:text-zinc-300'
+                            target='_blank'
                         >
                             {schedule.header.title}
                         </Link>

@@ -73,8 +73,6 @@ export default function ScheduleContainer({ schedules }: ScheduleContainerProps)
         const firstDay = getPreviousMonday(sortedItems[0]!.startDate);
         const lastDay = getNextSunday(sortedItems.at(-1)!.startDate);
 
-        console.log(lastDay, sortedItems.at(-1)!.startDate);
-
         for (
             const day = new Date(firstDay);
             day.getTime() <= lastDay.getTime();
