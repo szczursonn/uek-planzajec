@@ -137,6 +137,7 @@ const PickerPage = ({ groups }: InferGetServerSidePropsType<typeof getServerSide
                         onChange={setSearchValue}
                         placeholder='Informatyka Stosowana'
                     />
+                    <noscript>Enable JavaScript to use search.</noscript>
 
                     <div className='mt-2' />
 

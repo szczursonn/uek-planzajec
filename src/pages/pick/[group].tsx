@@ -151,6 +151,7 @@ const PickGroupPage = ({ schedules }: InferGetServerSidePropsType<typeof getServ
                         </Select>
                     )}
                 </div>
+                <noscript>Enable JavaScript to use search.</noscript>
             </div>
 
             {schedules !== null && schedules.length === 0 && (

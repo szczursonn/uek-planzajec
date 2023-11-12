@@ -17,12 +17,12 @@ type ExtendedScheduleItem = Schedule['items'][number] & {
 };
 
 const SCHEDULE_ITEM_STYLE = {
-    GRAY: 'bg-gray-800 border-gray-900',
-    BLUE: 'bg-sky-800 border-sky-900',
-    AMBER: 'bg-amber-800 border-amber-900',
-    GREEN: 'bg-green-700 border-green-900',
+    GRAY: 'bg-gray-600 border-gray-900 dark:bg-gray-800',
+    BLUE: 'bg-sky-600 border-sky-900 dark:bg-sky-800',
+    AMBER: 'bg-amber-600 border-amber-900 dark:bg-amber-800',
+    GREEN: 'bg-green-600 border-green-900 dark:bg-green-700',
     INDIGO: 'bg-indigo-700 border-indigo-900',
-    GRAY_OUTLINE: 'bg-black border-gray-900 border-[3px]',
+    GRAY_OUTLINE: 'bg-inherit text-black dark:text-inherit border-gray-900 border-[3px]',
 };
 
 const SCHEDULE_ITEM_TYPE_TO_CLASS = {
@@ -101,6 +101,12 @@ export default function ScheduleContainer({ schedules }: ScheduleContainerProps)
     return (
         <ul className={`grid grid-cols-1 sm:grid-cols-7 sm:gap-2 sm:gap-y-20`}>
             {days.map(({ day, items }) => {
+                const formattedDay = new Intl.DateTimeFormat('pl-pl', {
+                    day: 'numeric',
+                    month: 'long',
+                    weekday: 'short',
+                }).format(day);
+
                 return (
                     <li
                         key={day.getTime()}
@@ -108,12 +114,8 @@ export default function ScheduleContainer({ schedules }: ScheduleContainerProps)
                             items.length === 0 ? 'sm:flex hidden' : 'flex'
                         } flex-col my-4 gap-2`}
                     >
-                        <span className='flex flex-col items-center border-y-2 sticky top-0 z-30 bg-black truncate'>
-                            {new Intl.DateTimeFormat('pl-pl', {
-                                day: 'numeric',
-                                month: 'long',
-                                weekday: 'short',
-                            }).format(day)}
+                        <span className='flex flex-col items-center border-y-2 sticky top-0 z-30 bg-zinc-300 dark:bg-black border-zinc-400 dark:border-inherit truncate'>
+                            {formattedDay}
                         </span>
                         <ul className='flex flex-col gap-2'>
                             {items.map((item) => {
@@ -138,6 +140,7 @@ export default function ScheduleContainer({ schedules }: ScheduleContainerProps)
                                     >
                                         {shouldInsertIndicator && (
                                             <div
+                                                aria-hidden
                                                 suppressHydrationWarning
                                                 style={{
                                                     top:

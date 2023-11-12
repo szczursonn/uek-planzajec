@@ -45,6 +45,21 @@ const MyApp: AppType = ({ Component, pageProps }) => {
             <main className='w-full px-4 pb-4 mb-auto'>
                 <Component {...pageProps} />
             </main>
+
+            <footer className='mt-20 mb-10'>
+                <Link
+                    href='https://github.com/szczursonn/uek-planzajec'
+                    className='hover:opacity-70 opacity-60 dark:opacity-100'
+                    target='_blank'
+                >
+                    <Image
+                        src='https://raw.githubusercontent.com/rdimascio/icons/master/icons/github.svg'
+                        alt='GitHub logo'
+                        width={75}
+                        height={75}
+                    />
+                </Link>
+            </footer>
         </div>
     );
 };
