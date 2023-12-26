@@ -21,6 +21,8 @@ const compositeGroupId = z
         id: id.substring(1),
     }));
 
+export const runtime = 'experimental-edge';
+
 export default function SchedulePage({
     schedules,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {

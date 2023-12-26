@@ -1,5 +1,7 @@
 import { type GetServerSideProps } from 'next';
 
+export const runtime = 'experimental-edge';
+
 export default function HomePage() {
     return <></>;
 }
