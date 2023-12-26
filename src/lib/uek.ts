@@ -243,5 +243,9 @@ export const getSchedule = async (
         });
     }
 
+    schedule.items = schedule.items.filter(
+        (item) => !(item.type === 'lektorat' && item.subject?.includes('grupa przedmiotów')),
+    );
+
     return schedule;
 };
