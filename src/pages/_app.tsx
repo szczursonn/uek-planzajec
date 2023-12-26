@@ -7,20 +7,31 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import DocumentTitle from '@/components/DocumentTitle';
 import Head from 'next/head';
+import { useEffect } from 'react';
 
 const inter = Inter({ subsets: ['latin'] });
 
-Router.events.on('routeChangeStart', (_, { shallow }: { shallow: boolean }) => {
-    if (!shallow) {
-        NProgress.start();
-    }
-});
-
-Router.events.on('routeChangeComplete', () => {
-    NProgress.done(false);
-});
-
 const MyApp: AppType = ({ Component, pageProps }) => {
+    useEffect(() => {
+        const handleRouteChangeStart = (_: unknown, { shallow }: { shallow: boolean }) => {
+            if (!shallow) {
+                NProgress.start();
+            }
+        };
+
+        const handleRouteChangeComplete = () => {
+            NProgress.done(false);
+        };
+
+        Router.events.on('routeChangeStart', handleRouteChangeStart);
+        Router.events.on('routeChangeComplete', handleRouteChangeComplete);
+
+        return () => {
+            Router.events.off('routeChangeStart', handleRouteChangeStart);
+            Router.events.off('routeChangeComplete', handleRouteChangeComplete);
+        };
+    }, []);
+
     return (
         <div
             className={`${inter.className} min-h-screen flex flex-col items-center justify-between transition-all dark:transition-all`}

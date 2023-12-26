@@ -2,28 +2,42 @@ import { useMemo } from 'react';
 import { type InferGetServerSidePropsType, type GetServerSideProps } from 'next';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { z } from 'zod';
 import ButtonGroup from '@/components/ButtonGroup';
 import DocumentTitle from '@/components/DocumentTitle';
 import LinkList from '@/components/LinkList';
 import SearchInput from '@/components/SearchInput';
 import Select from '@/components/Select';
 import { useURLState } from '@/hooks/useURLState';
-import { usePickerSchedules } from '@/hooks/usePickerSchedules';
-import { useScheduleHeaderDetails } from '@/hooks/useScheduleHeaderDetails';
 import { useUniqueObjectValues } from '@/hooks/useUniqueObjectValues';
-import { getScheduleSummaries } from '@/lib/scrape';
-import { scheduleTypeSchema, type ScheduleHeader } from '@/lib/schema';
-
-interface PickGroupPageProps {
-    schedules: ScheduleHeader[];
-}
+import { type CategoryDetail, getCategoryDetail, scheduleTypeSchema } from '@/lib/uek';
+import { usePickerState } from '@/hooks/usePickerState';
 
 export const runtime = 'experimental-edge';
 
 const SCHEDULE_HEADER_UNIQUE_FIELDS = ['mode', 'year', 'language', 'languageLevel'] as const;
 
-const PickGroupPage = ({ schedules }: InferGetServerSidePropsType<typeof getServerSideProps>) => {
+const NORMAL_GROUP_REGEX = /^[A-Z]{4}(?<mode>.)(?<stage>.)-(?<year>.)/;
+const CJ_GROUP_REGEX =
+    /CJ-{1,2}(?<mode>[SN])(?<stage>.)-(?<year>.)\/\d-?(?<language>[A-Z]{3})\.(?<languageLevel>[A-Za-z0-9]{2})/;
+const PPUZ_GROUP_REGEX = /PPUZ-[A-Z]{3}(?<mode>[A-Z])(?<stage>.)-(?<year>.)\d+/;
+
+const getGroupYear = (stage: string | undefined, labelYear: string | undefined) => {
+    const labelYearAsNumber = parseInt(labelYear ?? '');
+
+    if (!isFinite(labelYearAsNumber)) {
+        return null;
+    } else if (stage === '1' || stage === 'M') {
+        return labelYearAsNumber;
+    } else if (stage === '2') {
+        return labelYearAsNumber + 3;
+    }
+
+    return null;
+};
+
+export default function PickGroupPage({
+    category,
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
     const [searchValue, setSearchValue] = useURLState('name');
     const [studyMode, setStudyMode] = useURLState('mode');
     const [studyYear, setStudyYear] = useURLState('year');
@@ -31,25 +45,44 @@ const PickGroupPage = ({ schedules }: InferGetServerSidePropsType<typeof getServ
     const [studyLanguageLevel, setStudyLanguageLevel] = useURLState('languageLevel');
     const router = useRouter();
 
-    const parsedSchedules = useScheduleHeaderDetails(schedules);
+    const selectedSchedules = usePickerState();
 
-    const filteredSchedules = useMemo(() => {
+    const detailedGroups = useMemo(
+        () =>
+            category.groups.map((group) => {
+                const details =
+                    group.label.match(NORMAL_GROUP_REGEX)?.groups ??
+                    group.label.match(CJ_GROUP_REGEX)?.groups ??
+                    group.label.match(PPUZ_GROUP_REGEX)?.groups;
+
+                return {
+                    ...group,
+                    mode: details?.mode,
+                    year: getGroupYear(details?.stage, details?.year)
+                        ?.toString()
+                        .trim(),
+                    language: details?.language?.trim(),
+                    languageLevel: details?.languageLevel?.trim(),
+                };
+            }),
+        [category.groups],
+    );
+
+    const filteredGroups = useMemo(() => {
         return (
-            parsedSchedules?.filter(
-                (schedule) =>
-                    (!studyMode || schedule.mode === studyMode) &&
-                    (!studyYear || schedule.year === studyYear) &&
-                    (!studyLanguage || schedule.language === studyLanguage) &&
-                    (!studyLanguageLevel || schedule.languageLevel === studyLanguageLevel) &&
+            detailedGroups.filter(
+                (group) =>
+                    (!studyMode || group.mode === studyMode) &&
+                    (!studyYear || group.year === studyYear) &&
+                    (!studyLanguage || group.language === studyLanguage) &&
+                    (!studyLanguageLevel || group.languageLevel === studyLanguageLevel) &&
                     (!searchValue ||
-                        schedule.label.toLowerCase().includes(searchValue.trim().toLowerCase())),
+                        group.label.toLowerCase().includes(searchValue.trim().toLowerCase())),
             ) ?? []
         );
-    }, [parsedSchedules, searchValue, studyMode, studyYear, studyLanguage, studyLanguageLevel]);
+    }, [detailedGroups, searchValue, studyMode, studyYear, studyLanguage, studyLanguageLevel]);
 
-    const uniqueValues = useUniqueObjectValues(parsedSchedules, SCHEDULE_HEADER_UNIQUE_FIELDS);
-
-    const { generateQueryWithSchedule } = usePickerSchedules();
+    const uniqueValues = useUniqueObjectValues(detailedGroups, SCHEDULE_HEADER_UNIQUE_FIELDS);
 
     return (
         <div className='sm:mx-[15vw]'>
@@ -59,9 +92,7 @@ const PickGroupPage = ({ schedules }: InferGetServerSidePropsType<typeof getServ
                     href={{
                         pathname: '/pick',
                         query: {
-                            id: router.query.id,
-                            names: router.query.names,
-                            type: router.query.type,
+                            state: router.query.state,
                         },
                     }}
                 >
@@ -83,7 +114,7 @@ const PickGroupPage = ({ schedules }: InferGetServerSidePropsType<typeof getServ
                 <SearchInput
                     value={searchValue}
                     onChange={setSearchValue}
-                    placeholder={schedules?.[0]?.label}
+                    placeholder={detailedGroups[0]?.label}
                 />
 
                 {uniqueValues.mode.length > 1 && (
@@ -154,27 +185,31 @@ const PickGroupPage = ({ schedules }: InferGetServerSidePropsType<typeof getServ
                 <noscript>Enable JavaScript to use search.</noscript>
             </div>
 
-            {schedules !== null && schedules.length === 0 && (
+            {detailedGroups !== null && detailedGroups.length === 0 && (
                 <div>Nie znaleziono żadnej grupy.</div>
             )}
-            {schedules !== null && schedules.length > 0 && filteredSchedules.length === 0 && (
-                <div>Żadna grupa nie spełnia wymagań.</div>
-            )}
+            {detailedGroups !== null &&
+                detailedGroups.length > 0 &&
+                filteredGroups.length === 0 && <div>Żadna grupa nie spełnia wymagań.</div>}
 
             <div className='mt-2' />
-            {filteredSchedules.length > 0 && (
+            {filteredGroups.length > 0 && (
                 <LinkList>
-                    {filteredSchedules.map((group) => (
+                    {filteredGroups.map((group) => (
                         <LinkList.Item
                             key={group.id}
                             href={{
                                 pathname: '/pick',
                                 query: {
-                                    type: router.query.type,
-                                    ...generateQueryWithSchedule({
-                                        id: group.id,
-                                        name: group.label,
-                                    }),
+                                    type: group.type,
+                                    state: JSON.stringify([
+                                        ...selectedSchedules,
+                                        {
+                                            type: group.type,
+                                            id: group.id,
+                                            label: group.label,
+                                        },
+                                    ]),
                                 },
                             }}
                             label={group.label}
@@ -184,21 +219,17 @@ const PickGroupPage = ({ schedules }: InferGetServerSidePropsType<typeof getServ
             )}
         </div>
     );
-};
+}
 
-export default PickGroupPage;
-
-export const getServerSideProps: GetServerSideProps<PickGroupPageProps> = async (ctx) => {
-    const schedules = await getScheduleSummaries(
-        z
-            .string()
-            .min(1)
-            .parse(ctx.params?.group),
-        scheduleTypeSchema.parse(ctx.query.type),
-    );
+export const getServerSideProps: GetServerSideProps<{
+    category: CategoryDetail;
+}> = async (ctx) => {
     return {
         props: {
-            schedules,
+            category: await getCategoryDetail(
+                String(ctx.params?.group),
+                scheduleTypeSchema.parse(ctx.params?.type),
+            ),
         },
     };
 };

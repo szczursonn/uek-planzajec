@@ -24,14 +24,11 @@ export const useURLState = (key: string) => {
     };
 
     useEffect(() => {
-        const currentValue = (
-            Array.isArray(router.query[key]) ? String(router.query[key]) : router.query[key]
-        ) as string | undefined;
         if (currentValue !== optimisticValue) {
             setOptimisticValue(currentValue);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [router.query[key]]);
+    }, [currentValue]);
 
     return [optimisticValue, setValue] as const;
 };
